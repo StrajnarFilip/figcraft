@@ -523,6 +523,11 @@ pub fn begin_many(s: &mut Session, ids: &[NodeId]) -> Result<()> {
     let Some((&id, rest)) = edited.split_first() else {
         return Err(first_err.unwrap_or_else(|| bad("vector.edit.begin", "select a shape")));
     };
+    // Edit mode takes the pointer only under Move (or Scale/Hand); entered with another tool
+    // (Enter after drawing with the Pencil) that tool kept drawing whatever the edit tool was.
+    if !matches!(s.tool.tool, crate::tools::ToolId::Move | crate::tools::ToolId::Scale | crate::tools::ToolId::Hand) {
+        s.set_tool(crate::tools::ToolId::Move);
+    }
     let ds = s.ds_mut()?;
     let converted = (!std::sync::Arc::ptr_eq(&before, &ds.doc)).then(|| (ds.uid, ds.selection.clone(), ds.page));
     let mut ve = VectorEdit::new(id);

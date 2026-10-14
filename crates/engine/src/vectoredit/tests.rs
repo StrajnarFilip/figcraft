@@ -341,3 +341,21 @@ fn eraser_strokes_cut_paths_in_one_step() {
     assert!(key(&mut s, "E", true, false, false).unwrap());
     assert_eq!(ve(&s).tool, VTool::Eraser);
 }
+
+#[test]
+fn entering_edit_mode_from_the_pencil_paints_instead_of_drawing() {
+    let mut s = Session::new();
+    let r = ex(&mut s, "shape.rectangle", json!({"x": 0, "y": 0, "width": 100, "height": 100}));
+    let id = crate::params::id_of(&r["id"]).unwrap();
+    // Draw with the Pencil, then edit the shape (Enter) with the Pencil still the tool.
+    ex(&mut s, "tool.set", json!({"tool": "pencil"}));
+    ex(&mut s, "select.set", json!({"ids": [id]}));
+    ex(&mut s, "vector.edit.begin", json!({"id": id}));
+    assert_eq!(s.tool.tool, crate::tools::ToolId::Move, "edit mode takes the pointer");
+    ex(&mut s, "vector.edit.tool", json!({"tool": "paint"}));
+    let layers = s.doc().unwrap().node_count();
+    drag(&mut s, (20.0, 20.0), (80.0, 80.0));
+    assert_eq!(s.doc().unwrap().node_count(), layers, "no pencil stroke");
+    assert!(!net(&s, id).fill_contains(pt(50.0, 50.0)), "the bucket unfilled the area");
+    assert!(s.ds().unwrap().vector_edit.is_some());
+}
