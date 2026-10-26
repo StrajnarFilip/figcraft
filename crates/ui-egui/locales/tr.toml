@@ -1776,6 +1776,16 @@ name = "Türkçe"
 "⌘ scroll" = "⌘ kaydırma"
 "⌥ drag" = "⌥ sürükle"
 
+
+# Android Vector Drawable export.
+"Compatibility" = "Uyumluluk"
+"Android Vector Drawable" = "Android Vector Drawable"
+"Best effort" = "En iyi çaba"
+"Exact only" = "Yalnızca tam"
+"Ignore unsupported" = "Desteklenmeyeni yoksay"
+"Exported {name}; {n} kinds of content were changed or left out" = { one = "{name} dışa aktarıldı; {n} içerik türü değiştirildi veya atlandı", other = "{name} dışa aktarıldı; {n} içerik türü değiştirildi veya atlandı" }
+"Exported {n} files; some content was changed or left out" = { one = "{n} dosya dışa aktarıldı; bazı içerikler değiştirildi veya atlandı", other = "{n} dosya dışa aktarıldı; bazı içerikler değiştirildi veya atlandı" }
+
 [commands]
 "align.bottom" = "Alta hizala"
 "align.hcenter" = "Yatay merkezleri hizala"

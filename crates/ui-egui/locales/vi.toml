@@ -1754,6 +1754,16 @@ status = "draft — needs native review"
 "⌘ scroll" = "⌘ cuộn"
 "⌥ drag" = "⌥ kéo"
 
+
+# Android Vector Drawable export.
+"Compatibility" = "Khả năng tương thích"
+"Android Vector Drawable" = "Android Vector Drawable"
+"Best effort" = "Cố gắng tối đa"
+"Exact only" = "Chỉ chính xác"
+"Ignore unsupported" = "Bỏ qua nội dung không hỗ trợ"
+"Exported {name}; {n} kinds of content were changed or left out" = { other = "Đã xuất {name}; {n} loại nội dung đã được thay đổi hoặc bỏ qua" }
+"Exported {n} files; some content was changed or left out" = { other = "Đã xuất {n} tệp; một số nội dung đã được thay đổi hoặc bỏ qua" }
+
 [commands]
 "align.bottom" = "Căn dưới"
 "align.hcenter" = "Căn tâm ngang"

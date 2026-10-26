@@ -1825,6 +1825,16 @@ name = "Polski"
 "⌘ scroll" = "⌘ przewijanie"
 "⌥ drag" = "⌥ przeciągnięcie"
 
+
+# Android Vector Drawable export.
+"Compatibility" = "Zgodność"
+"Android Vector Drawable" = "Android Vector Drawable"
+"Best effort" = "Najlepsze przybliżenie"
+"Exact only" = "Tylko dokładne"
+"Ignore unsupported" = "Ignoruj nieobsługiwane"
+"Exported {name}; {n} kinds of content were changed or left out" = { one = "Wyeksportowano {name}; zmieniono lub pominięto {n} rodzaj zawartości", other = "Wyeksportowano {name}; zmieniono lub pominięto {n} rodzajów zawartości", few = "Wyeksportowano {name}; zmieniono lub pominięto {n} rodzaje zawartości", many = "Wyeksportowano {name}; zmieniono lub pominięto {n} rodzajów zawartości" }
+"Exported {n} files; some content was changed or left out" = { one = "Wyeksportowano {n} plik; część zawartości zmieniono lub pominięto", other = "Wyeksportowano {n} plików; część zawartości zmieniono lub pominięto", few = "Wyeksportowano {n} pliki; część zawartości zmieniono lub pominięto", many = "Wyeksportowano {n} plików; część zawartości zmieniono lub pominięto" }
+
 [commands]
 "align.bottom" = "Wyrównaj do dołu"
 "align.hcenter" = "Wyrównaj poziomo do środka"

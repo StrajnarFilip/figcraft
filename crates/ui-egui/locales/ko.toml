@@ -1835,6 +1835,16 @@ status = "draft — needs native review"
 "{n} text layers" = { other = "텍스트 레이어 {n}개" }
 "{percent}%" = "{percent}%"
 
+
+# Android Vector Drawable export.
+"Compatibility" = "호환성"
+"Android Vector Drawable" = "Android Vector Drawable"
+"Best effort" = "최대한 재현"
+"Exact only" = "정확한 항목만"
+"Ignore unsupported" = "지원되지 않는 항목 무시"
+"Exported {name}; {n} kinds of content were changed or left out" = { other = "{name} 내보냄; {n}종류의 콘텐츠가 변경되거나 생략됨" }
+"Exported {n} files; some content was changed or left out" = { other = "{n}개 파일 내보냄; 일부 콘텐츠가 변경되거나 생략됨" }
+
 [commands]
 "align.bottom" = "아래쪽 정렬"
 "align.hcenter" = "수평 가운데 정렬"

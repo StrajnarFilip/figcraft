@@ -1728,6 +1728,16 @@ status = "draft — needs native review"
 "⌘ scroll" = "⌘ 滚动"
 "⌥ drag" = "⌥ 拖动"
 
+
+# Android Vector Drawable export.
+"Compatibility" = "兼容性"
+"Android Vector Drawable" = "Android Vector Drawable"
+"Best effort" = "尽力还原"
+"Exact only" = "仅精确还原"
+"Ignore unsupported" = "忽略不支持的内容"
+"Exported {name}; {n} kinds of content were changed or left out" = { other = "已导出 {name}；{n} 类内容已更改或省略" }
+"Exported {n} files; some content was changed or left out" = { other = "已导出 {n} 个文件；部分内容已更改或省略" }
+
 [commands]
 "align.bottom" = "底部对齐"
 "align.hcenter" = "水平居中对齐"

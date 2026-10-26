@@ -1776,6 +1776,16 @@ status = "draft — needs native review"
 "⌘ scroll" = "⌘ gulir"
 "⌥ drag" = "⌥ seret"
 
+
+# Android Vector Drawable export.
+"Compatibility" = "Kompatibilitas"
+"Android Vector Drawable" = "Android Vector Drawable"
+"Best effort" = "Upaya terbaik"
+"Exact only" = "Hanya yang persis"
+"Ignore unsupported" = "Abaikan yang tidak didukung"
+"Exported {name}; {n} kinds of content were changed or left out" = { one = "{name} diekspor; {n} jenis konten diubah atau diabaikan", other = "{name} diekspor; {n} jenis konten diubah atau diabaikan" }
+"Exported {n} files; some content was changed or left out" = { one = "{n} file diekspor; sebagian konten diubah atau diabaikan", other = "{n} file diekspor; sebagian konten diubah atau diabaikan" }
+
 [commands]
 "align.bottom" = "Ratakan bawah"
 "align.hcenter" = "Ratakan tengah horizontal"

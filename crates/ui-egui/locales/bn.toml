@@ -1809,6 +1809,16 @@ status = "draft — needs native review"
 "⌥ drag" = "⌥ ড্র্যাগ"
 
 
+
+# Android Vector Drawable export.
+"Compatibility" = "সামঞ্জস্য"
+"Android Vector Drawable" = "Android Vector Drawable"
+"Best effort" = "সর্বোত্তম প্রচেষ্টা"
+"Exact only" = "শুধু হুবহু"
+"Ignore unsupported" = "অসমর্থিত বিষয় উপেক্ষা করুন"
+"Exported {name}; {n} kinds of content were changed or left out" = { one = "রপ্তানি হয়েছে: {name}; {n} ধরনের বিষয়বস্তু পরিবর্তন করা হয়েছে বা বাদ দেওয়া হয়েছে", other = "রপ্তানি হয়েছে: {name}; {n} ধরনের বিষয়বস্তু পরিবর্তন করা হয়েছে বা বাদ দেওয়া হয়েছে" }
+"Exported {n} files; some content was changed or left out" = { one = "{n}টি ফাইল রপ্তানি হয়েছে; কিছু বিষয়বস্তু পরিবর্তন করা হয়েছে বা বাদ দেওয়া হয়েছে", other = "{n}টি ফাইল রপ্তানি হয়েছে; কিছু বিষয়বস্তু পরিবর্তন করা হয়েছে বা বাদ দেওয়া হয়েছে" }
+
 [commands]
 "board.connector" = "সংযোগকারী"
 "board.ink" = "মার্কারের টান"

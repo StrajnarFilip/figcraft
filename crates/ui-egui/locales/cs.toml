@@ -1772,6 +1772,16 @@ status = "draft — needs native review"
 "⌘ scroll" = "⌘ posouvání"
 "⌥ drag" = "⌥ tažení"
 
+
+# Android Vector Drawable export.
+"Compatibility" = "Kompatibilita"
+"Android Vector Drawable" = "Android Vector Drawable"
+"Best effort" = "Nejlepší možné"
+"Exact only" = "Pouze přesné"
+"Ignore unsupported" = "Ignorovat nepodporované"
+"Exported {name}; {n} kinds of content were changed or left out" = { one = "Exportováno: {name}; {n} druh obsahu byl změněn nebo vynechán", other = "Exportováno: {name}; {n} druhů obsahu bylo změněno nebo vynecháno", few = "Exportováno: {name}; {n} druhy obsahu byly změněny nebo vynechány" }
+"Exported {n} files; some content was changed or left out" = { one = "Exportován {n} soubor; část obsahu byla změněna nebo vynechána", other = "Exportováno {n} souborů; část obsahu byla změněna nebo vynechána", few = "Exportovány {n} soubory; část obsahu byla změněna nebo vynechána" }
+
 [commands]
 "align.bottom" = "Zarovnat dolů"
 "align.hcenter" = "Zarovnat vodorovné středy"

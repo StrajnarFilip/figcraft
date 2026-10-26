@@ -1832,6 +1832,16 @@ status = "draft — needs native review"
 "{n} text layers" = { one = "{n} camada de texto", other = "{n} camadas de texto" }
 "{percent}%" = "{percent}%"
 
+
+# Android Vector Drawable export.
+"Compatibility" = "Compatibilidade"
+"Android Vector Drawable" = "Android Vector Drawable"
+"Best effort" = "Melhor aproximação"
+"Exact only" = "Somente exato"
+"Ignore unsupported" = "Ignorar conteúdo incompatível"
+"Exported {name}; {n} kinds of content were changed or left out" = { one = "{name} exportado; {n} tipo de conteúdo foi alterado ou omitido", other = "{name} exportado; {n} tipos de conteúdo foram alterados ou omitidos" }
+"Exported {n} files; some content was changed or left out" = { one = "{n} arquivo exportado; parte do conteúdo foi alterada ou omitida", other = "{n} arquivos exportados; parte do conteúdo foi alterada ou omitida" }
+
 [commands]
 "align.bottom" = "Alinhar embaixo"
 "align.hcenter" = "Alinhar centros horizontalmente"

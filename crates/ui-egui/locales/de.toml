@@ -1729,6 +1729,16 @@ status = "draft — needs native review"
 "⌘ scroll" = "⌘ Scrollen"
 "⌥ drag" = "⌥ Ziehen"
 
+
+# Android Vector Drawable export.
+"Compatibility" = "Kompatibilität"
+"Android Vector Drawable" = "Android Vector Drawable"
+"Best effort" = "Bestmöglich"
+"Exact only" = "Nur exakt"
+"Ignore unsupported" = "Nicht unterstützte Inhalte ignorieren"
+"Exported {name}; {n} kinds of content were changed or left out" = { one = "{name} exportiert; {n} Inhaltsart wurde geändert oder ausgelassen", other = "{name} exportiert; {n} Inhaltsarten wurden geändert oder ausgelassen" }
+"Exported {n} files; some content was changed or left out" = { one = "{n} Datei exportiert; einige Inhalte wurden geändert oder ausgelassen", other = "{n} Dateien exportiert; einige Inhalte wurden geändert oder ausgelassen" }
+
 [commands]
 "align.bottom" = "Unten ausrichten"
 "align.hcenter" = "Horizontal zentrieren"

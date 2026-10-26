@@ -1825,6 +1825,16 @@ name = "Svenska"
 "⌘ scroll" = "⌘ rulla"
 "⌥ drag" = "⌥ dra"
 
+
+# Android Vector Drawable export.
+"Compatibility" = "Kompatibilitet"
+"Android Vector Drawable" = "Android Vector Drawable"
+"Best effort" = "Bästa möjliga"
+"Exact only" = "Endast exakt"
+"Ignore unsupported" = "Ignorera innehåll som inte stöds"
+"Exported {name}; {n} kinds of content were changed or left out" = { one = "{name} exporterades; {n} innehållstyp ändrades eller utelämnades", other = "{name} exporterades; {n} innehållstyper ändrades eller utelämnades" }
+"Exported {n} files; some content was changed or left out" = { one = "{n} fil exporterades; visst innehåll ändrades eller utelämnades", other = "{n} filer exporterades; visst innehåll ändrades eller utelämnades" }
+
 [commands]
 
 "align.bottom" = "Justera nederkant"

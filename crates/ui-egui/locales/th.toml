@@ -1804,6 +1804,16 @@ status = "draft — needs native review"
 "⌘ scroll" = "⌘ เลื่อน"
 "⌥ drag" = "⌥ ลาก"
 
+
+# Android Vector Drawable export.
+"Compatibility" = "ความเข้ากันได้"
+"Android Vector Drawable" = "Android Vector Drawable"
+"Best effort" = "ใกล้เคียงที่สุด"
+"Exact only" = "เฉพาะที่ตรงกันทุกประการ"
+"Ignore unsupported" = "ละเว้นเนื้อหาที่ไม่รองรับ"
+"Exported {name}; {n} kinds of content were changed or left out" = { other = "ส่งออก {name} แล้ว; เนื้อหา {n} ประเภทถูกเปลี่ยนแปลงหรือละเว้น" }
+"Exported {n} files; some content was changed or left out" = { other = "ส่งออก {n} ไฟล์แล้ว; เนื้อหาบางส่วนถูกเปลี่ยนแปลงหรือละเว้น" }
+
 [commands]
 "align.bottom" = "จัดแนวชิดล่าง"
 "align.hcenter" = "จัดแนวกึ่งกลางแนวนอน"

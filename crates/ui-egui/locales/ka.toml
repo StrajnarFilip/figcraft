@@ -1810,6 +1810,16 @@ status = "draft — reviewed by a native speaker, awaiting a maintainer's approv
 "⌘ scroll" = "⌘ გადახვევა"
 "⌥ drag" = "⌥ გადათრევა"
 
+
+# Android Vector Drawable export.
+"Compatibility" = "თავსებადობა"
+"Android Vector Drawable" = "Android Vector Drawable"
+"Best effort" = "საუკეთესო შესაძლო შედეგი"
+"Exact only" = "მხოლოდ ზუსტი"
+"Ignore unsupported" = "მხარდაუჭერელის გამოტოვება"
+"Exported {name}; {n} kinds of content were changed or left out" = { one = "{name} ექსპორტირებულია; შიგთავსის {n} ტიპი შეიცვალა ან გამოტოვებულია", other = "{name} ექსპორტირებულია; შიგთავსის {n} ტიპი შეიცვალა ან გამოტოვებულია" }
+"Exported {n} files; some content was changed or left out" = { one = "{n} ფაილი ექსპორტირებულია; შიგთავსის ნაწილი შეიცვალა ან გამოტოვებულია", other = "{n} ფაილი ექსპორტირებულია; შიგთავსის ნაწილი შეიცვალა ან გამოტოვებულია" }
+
 [commands]
 "align.bottom" = "ქვემოთ სწორება"
 "align.hcenter" = "ჰორიზონტალური ცენტრების სწორება"

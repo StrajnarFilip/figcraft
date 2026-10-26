@@ -1814,6 +1814,16 @@ status = "draft — needs native review"
 "⌘ scroll" = "⌘ scroll"
 "⌥ drag" = "⌥ drag"
 
+
+# Android Vector Drawable export.
+"Compatibility" = "Yhteensopivuus"
+"Android Vector Drawable" = "Android Vector Drawable"
+"Best effort" = "Paras mahdollinen"
+"Exact only" = "Vain tarkka"
+"Ignore unsupported" = "Ohita tukematon sisältö"
+"Exported {name}; {n} kinds of content were changed or left out" = { one = "{name} vietiin; {n} sisältötyyppi muutettiin tai jätettiin pois", other = "{name} vietiin; {n} sisältötyyppiä muutettiin tai jätettiin pois" }
+"Exported {n} files; some content was changed or left out" = { one = "{n} tiedosto vietiin; osa sisällöstä muutettiin tai jätettiin pois", other = "{n} tiedostoa vietiin; osa sisällöstä muutettiin tai jätettiin pois" }
+
 [commands]
 "align.bottom" = "Tasaa alas"
 "align.hcenter" = "Keskitä vaakasuunnassa"
