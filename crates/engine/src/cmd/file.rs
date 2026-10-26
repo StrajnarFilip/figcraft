@@ -111,6 +111,13 @@ pub fn specs() -> Vec<CommandSpec> {
         ),
         spec!("file.placeImage", "Place image", "{path | data, x?, y?}", true, super::create::place_image),
         spec!("file.close", "Close tab", "{index?, force? (discard unsaved changes)}", false, close),
+        spec!(
+            "file.refresh",
+            "Refresh saved files",
+            "{}  reload externally changed native files with no local edits, previews, branch tabs or live session; keeps tab identity and view; returns {refreshed: [document uid], errors: [message]}",
+            false,
+            refresh
+        ),
         spec!("file.moveTab", "Move tab", "{from, to} (indices among open documents)", false, |s, p| {
             let from = req_index("file.moveTab", p, "from")?;
             let to = req_index("file.moveTab", p, "to")?;
@@ -942,8 +949,9 @@ fn open(s: &mut Session, p: &Value) -> Result<Value> {
         return open_data(s, &d, p, variables.as_ref());
     }
     let path = req_string("file.open", p, "path")?;
+    crate::file_access::allow(&path, crate::file_access::Access::Read)?;
     // Already open: switch to it.
-    if let Some(i) = s.docs.iter().position(|d| d.path.as_deref() == Some(path.as_str())) {
+    if let Some(i) = s.docs.iter().position(|d| d.path.as_deref().is_some_and(|p| crate::file_access::same_file(p, &path))) {
         s.active = i;
         remember(s, &path);
         return Ok(json!({"index": i}));
@@ -973,6 +981,74 @@ fn open(s: &mut Session, p: &Value) -> Result<Value> {
     let mut out = json!({"index": s.active, "summary": summary});
     out[if warnings { "warnings" } else { "repairs" }] = json!(loaded.issues);
     Ok(out)
+}
+
+/// External saves are a new saved baseline, never an edit or the end of a preview. Prepare each
+/// replacement before touching its tab, and leave conflicting local work for Save as or Revert.
+fn refresh(s: &mut Session, _: &Value) -> Result<Value> {
+    let mut refreshed = Vec::new();
+    let mut errors = Vec::new();
+    let mut replacements = Vec::new();
+    for i in 0..s.docs.len() {
+        let Some(ds) = s.docs.get(i) else { continue };
+        if ds.branch_of.is_some()
+            || ds.interaction.is_some()
+            || ds.text_edit.is_some()
+            || ds.text_preview.is_some()
+            || ds.preview.is_some()
+            || s.live_of(ds.uid).doc_uid.is_some()
+            || s.docs.iter().any(|b| b.branch_of.as_ref().is_some_and(|(uid, _)| *uid == ds.uid))
+        {
+            continue;
+        }
+        let (Some(path), Some(was)) = (&ds.path, &ds.on_disk) else { continue };
+        let Ok(now) = crate::library::stat(path) else { continue };
+        if now == *was {
+            continue;
+        }
+        // Undo/normalisation can copy the saved document without changing its contents. Only
+        // compare those contents after an external change, rather than on every idle check.
+        if ds.is_dirty() && (ds.versions_changed || ds.doc != ds.saved_doc) {
+            continue;
+        }
+        let loaded = match load_path(path, None) {
+            Ok((loaded, false)) if loaded.issues.is_empty() && loaded.images_past_budget == 0 => loaded,
+            // An incomplete or damaged replacement must never become the saved baseline.
+            Ok(_) => {
+                errors.push(format!("{} couldn't be refreshed: the replacement file is incomplete or damaged", file_stem(path)));
+                continue;
+            }
+            Err(e) => {
+                errors.push(e.to_string());
+                continue;
+            }
+        };
+        // A writer still replacing this file: retry on the next notification.
+        if crate::library::stat(path).ok().as_ref() != Some(&now) {
+            continue;
+        }
+        let mut replacement = DocState::new(loaded.doc, Some(path.clone())).with_versions(loaded.versions).with_branches(loaded.branches);
+        replacement.uid = ds.uid;
+        replacement.revision = ds.revision.wrapping_add(1);
+        replacement.view = ds.view.clone();
+        replacement.view_from_prefs = ds.view_from_prefs;
+        if replacement.doc.pages.contains(&ds.page) {
+            replacement.page = ds.page;
+        }
+        replacement.selection = ds.selection.clone();
+        replacement.clean_selection();
+        replacement.on_disk = Some(now);
+        refreshed.push(ds.uid);
+        replacements.push((i, replacement));
+    }
+    // Parsing and settlement of every replacement happen before changing any tab, so the panic
+    // guard can leave the session untouched even when a later file fails unexpectedly.
+    for (i, replacement) in replacements {
+        if let Some(slot) = s.docs.get_mut(i) {
+            *slot = replacement;
+        }
+    }
+    Ok(json!({"refreshed": refreshed, "errors": errors}))
 }
 
 /// [`open`] for a file given as base64 `data` (a file dropped without a path on disk): `name` tells
@@ -1128,15 +1204,23 @@ fn wants_data(p: &Value) -> bool {
 /// Save the file of the active tab (the main file for a branch tab, with its branches), or export
 /// the active document as an experimental `.fig` copy without changing its native save state.
 /// Without a path the file comes back as base64 `data` for the caller to deliver (#969).
-fn save_to(s: &mut Session, path: Option<String>) -> Result<Value> {
+fn save_to(s: &mut Session, path: Option<String>, overwrite: bool) -> Result<Value> {
     if let Some(path) = path.as_deref().filter(|p| ext(p) == "fig") {
         return export_fig(s, &json!({"path": path}));
     }
     let i = crate::branches::file_tab(s);
+    if let Some(path) = &path
+        && s.docs.iter().enumerate().any(|(j, d)| j != i && d.path.as_deref().is_some_and(|p| crate::file_access::same_file(p, path)))
+    {
+        return Err(EngineError::Other(format!("{} is already open in another tab: switch to it, or save under another name", file_stem(path))));
+    }
     let ds = s.docs.get_mut(i).ok_or(EngineError::NoDocument)?;
     // A download (no path) writes over no file.
     if let Some(path) = path.as_deref() {
         refuse_dropping_images(ds, path)?;
+        if !overwrite && ds.path.as_deref().is_some_and(|p| crate::file_access::same_file(p, path)) {
+            refuse_overwriting_changes(ds, path)?;
+        }
     }
     let mut snapshot = FileSnapshot::of(ds);
     let follows_path = ds.path.as_deref().map_or(ds.doc.name == "Untitled", |old| ds.doc.name == file_stem(old));
@@ -1173,8 +1257,9 @@ fn mark_saved(s: &mut Session, _: &Value) -> Result<Value> {
 }
 
 fn save(s: &mut Session, p: &Value) -> Result<Value> {
+    let overwrite = p.get("overwrite").and_then(Value::as_bool) == Some(true);
     if let Some(path) = string(p, "path") {
-        return save_to(s, Some(path));
+        return save_to(s, Some(path), overwrite);
     }
     let ds = s.docs.get(crate::branches::file_tab(s)).ok_or(EngineError::NoDocument)?;
     match ds.path.clone() {
@@ -1183,12 +1268,7 @@ fn save(s: &mut Session, p: &Value) -> Result<Value> {
             s.request_ui("dialog.saveAs", json!({}));
             Err(EngineError::Disabled("file.save".into(), "the saved path ends in .fig: choose Save as or pass `path`".into()))
         }
-        Some(path) => {
-            if p.get("overwrite").and_then(Value::as_bool) != Some(true) {
-                refuse_overwriting_changes(ds, &path)?;
-            }
-            save_to(s, Some(path))
-        }
+        Some(path) => save_to(s, Some(path), overwrite),
         None => {
             s.request_ui("dialog.saveAs", json!({}));
             Err(EngineError::Disabled("file.save".into(), "the file has no path yet: pass `path`".into()))
@@ -1202,9 +1282,9 @@ fn save_as(s: &mut Session, p: &Value) -> Result<Value> {
             if ext(&path).is_empty() {
                 path.push_str(".figcraft");
             }
-            save_to(s, Some(path))
+            save_to(s, Some(path), false)
         }
-        None if wants_data(p) => save_to(s, None),
+        None if wants_data(p) => save_to(s, None, false),
         None => {
             s.request_ui("dialog.saveAs", json!({}));
             Err(EngineError::Disabled("file.saveAs".into(), "pass `path`".into()))

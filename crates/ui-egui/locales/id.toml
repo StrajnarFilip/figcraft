@@ -1777,6 +1777,7 @@ status = "draft — needs native review"
 "⌥ drag" = "⌥ seret"
 
 [commands]
+"file.refresh" = "Muat ulang file tersimpan"
 "align.bottom" = "Ratakan bawah"
 "align.hcenter" = "Ratakan tengah horizontal"
 "align.left" = "Rata kiri"

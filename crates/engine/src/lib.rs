@@ -970,6 +970,11 @@ impl Session {
     /// as it was.
     pub fn execute(&mut self, id: &str, params: &Value) -> Result<Value> {
         let spec = find_command(id).ok_or_else(|| EngineError::UnknownCommand(id.to_string()))?;
+        // A disk refresh manages its own saved baselines and skips busy/live documents. Running
+        // edit bookkeeping here would end previews, normalise replacements and mark them dirty.
+        if id == "file.refresh" {
+            return guard::run(id, || (spec.run)(self, params));
+        }
         board::refuse_on_board(self, id)?;
         // Revert replaces the document's uid: refuse before ending previews or syncing branches.
         if id == "file.revert" && self.live().doc_uid.is_some() {
