@@ -6,6 +6,7 @@ use serde_json::json;
 use crate::Session;
 use crate::cmd::file::FileSnapshot;
 
+/// A synthetic native path isolated by process and regression scenario.
 fn temp_file(name: &str) -> String {
     let dir = std::env::temp_dir().join(format!("figcraft-disk-changes-{}-{name}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
@@ -263,4 +264,55 @@ fn refresh_preserves_text_previews_live_documents_and_clean_branch_tabs() {
         }
         let _ = std::fs::remove_file(path);
     }
+}
+
+#[test]
+fn automatic_refresh_backs_off_but_explicit_refresh_bypasses_the_deadline() {
+    let path = temp_file("refresh-backoff");
+    let (mut writer, mut reader) = two_windows(&path);
+    writer.execute("page.rename", &json!({"name": "Recovered"})).unwrap();
+    writer.execute("file.save", &json!({})).unwrap();
+    let valid = std::fs::read(&path).unwrap();
+    let modified = std::fs::metadata(&path).unwrap().modified().unwrap();
+    std::fs::write(&path, vec![b'!'; valid.len()]).unwrap();
+    let reset_time = || {
+        std::fs::OpenOptions::new().write(true).open(&path).unwrap().set_times(std::fs::FileTimes::new().set_modified(modified)).unwrap();
+    };
+    reset_time();
+    assert!(!reader.execute("file.refresh", &json!({"automatic": true})).unwrap()["errors"].as_array().unwrap().is_empty());
+    let failed = reader.ds().unwrap().refresh_failure.clone().unwrap();
+    std::fs::write(&path, valid).unwrap();
+    reset_time();
+    assert_eq!(failed.stamp, crate::file_access::stamp(&path).unwrap(), "recovery does not change the observed stamp");
+    let suppressed = reader.execute("file.refresh", &json!({"automatic": true})).unwrap();
+    assert_eq!(suppressed["refreshed"], json!([]));
+    assert_eq!(suppressed["errors"], json!([]));
+    assert_eq!(reader.ds().unwrap().refresh_failure.as_ref().unwrap().retry_at, failed.retry_at);
+    assert_eq!(reader.execute("file.refresh", &json!({})).unwrap()["refreshed"].as_array().unwrap().len(), 1);
+    assert!(reader.ds().unwrap().refresh_failure.is_none());
+    assert_eq!(reader.doc().unwrap().node(reader.page().unwrap()).unwrap().name, "Recovered");
+    let _ = std::fs::remove_file(path);
+}
+
+#[test]
+fn a_new_stamp_bypasses_backoff_and_busy_failures_do_not_spin() {
+    let path = temp_file("refresh-backoff-generation");
+    let (mut writer, mut reader) = two_windows(&path);
+    std::fs::write(&path, b"broken").unwrap();
+    reader.execute("file.refresh", &json!({"automatic": true})).unwrap();
+    let before = reader.ds().unwrap().refresh_failure.clone().unwrap();
+    writer.execute("page.rename", &json!({"name": "New replacement"})).unwrap();
+    writer.execute("file.save", &json!({"overwrite": true})).unwrap();
+    assert_eq!(reader.execute("file.refresh", &json!({"automatic": true})).unwrap()["refreshed"].as_array().unwrap().len(), 1);
+    assert!(reader.ds().unwrap().refresh_failure.is_none());
+    assert_ne!(before.stamp, reader.ds().unwrap().on_disk.clone().unwrap());
+    std::fs::write(&path, b"broken again").unwrap();
+    reader.execute("file.refresh", &json!({"automatic": true})).unwrap();
+    reader.ds_mut().unwrap().refresh_failure.as_mut().unwrap().retry_at = web_time::Instant::now() - std::time::Duration::from_secs(1);
+    reader.begin_interaction("Drag").unwrap();
+    let deferred = reader.execute("file.refresh", &json!({"automatic": true})).unwrap();
+    assert_eq!(deferred["errors"], json!([]));
+    assert!(reader.ds().unwrap().refresh_failure.as_ref().unwrap().retry_at > web_time::Instant::now());
+    assert!(reader.ds().unwrap().interaction.is_some());
+    let _ = std::fs::remove_file(path);
 }

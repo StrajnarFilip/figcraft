@@ -308,6 +308,8 @@ pub struct Stamp {
     pub(crate) identity: Option<u64>,
 }
 
+/// Read a confined file's size, modification time and native identity without retaining an open
+/// descriptor. Non-files and paths outside the active read roots are refused.
 pub fn stamp(path: impl AsRef<Path>) -> Result<Stamp> {
     use std::hash::{Hash, Hasher};
 

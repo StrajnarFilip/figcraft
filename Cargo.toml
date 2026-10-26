@@ -23,6 +23,7 @@ figcraft-pathops = { path = "crates/pathops" }
 figcraft-render = { path = "crates/render" }
 figcraft-svg = { path = "crates/svg" }
 figcraft-pdf = { path = "crates/pdf" }
+figcraft-vectordrawable = { path = "crates/vectordrawable" }
 figcraft-format = { path = "crates/format" }
 figcraft-tools = { path = "crates/tools" }
 figcraft-collab = { path = "crates/collab" }
@@ -76,6 +77,7 @@ zip = { version = "2", default-features = false, features = ["deflate"] }
 # `.fig` import: raw deflate chunks (already built for zip) and zstd chunks (pure Rust, MIT, wasm-safe).
 flate2 = { version = "1", default-features = false, features = ["rust_backend"] }
 ruzstd = { version = "0.9.1", default-features = false, features = ["std"] }
+sha1 = "0.11"
 sha2 = "0.10"
 base64 = "0.22"
 crc32fast = "1"

@@ -539,11 +539,13 @@ fn now() -> Option<std::time::SystemTime> {
     None
 }
 
+/// Observe the generation of a confined native file for cache and save-conflict checks.
 #[cfg(not(target_arch = "wasm32"))]
 pub(crate) fn stat(path: &str) -> std::result::Result<Stamp, String> {
     crate::file_access::stamp(path).map_err(|e| e.to_string())
 }
 
+/// Browser sessions have no native filesystem stamps.
 #[cfg(target_arch = "wasm32")]
 pub(crate) fn stat(_path: &str) -> std::result::Result<Stamp, String> {
     Err(NO_FILES.into())

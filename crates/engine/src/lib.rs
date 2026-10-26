@@ -378,6 +378,8 @@ pub struct DocState {
     /// The file on disk as this tab last read or wrote it: a save refuses to replace what another
     /// app (figcraft-cli, say) wrote to it since (#1330).
     on_disk: Option<library::Stamp>,
+    /// A failed external refresh and its next automatic retry (transient, never saved).
+    pub refresh_failure: Option<cmd::file::RefreshFailure>,
 }
 
 /// A version shown on the canvas in place of the document: read-only until it's restored or the
@@ -442,6 +444,7 @@ impl DocState {
             last_duplicate: None,
             images_left_in_file: None,
             on_disk: None,
+            refresh_failure: None,
         };
         st.zoom_to_fit();
         st
@@ -452,9 +455,10 @@ impl DocState {
         self
     }
 
-    /// The tab's file now holds what this tab read or wrote.
+    /// The tab's file now holds what this tab read or wrote; any failed refresh is obsolete.
     pub(crate) fn note_on_disk(&mut self) {
         self.on_disk = self.path.as_deref().and_then(|p| library::stat(p).ok());
+        self.refresh_failure = None;
     }
 
     pub fn images_lost_saving_to(&self, path: &str) -> Option<usize> {
@@ -1900,6 +1904,8 @@ mod proto_delay_tests;
 #[cfg(test)]
 mod proto_multi_tests;
 #[cfg(test)]
+mod proto_overlay_anchor_tests;
+#[cfg(test)]
 mod proto_polish_tests;
 #[cfg(test)]
 mod proto_present_tests;
@@ -2000,6 +2006,8 @@ mod variants_discovery_tests;
 #[cfg(test)]
 mod vector_behaviour_tests;
 #[cfg(test)]
+mod vector_drawable_export_tests;
+#[cfg(test)]
 mod vector_fill_rule_tests;
 #[cfg(test)]
 mod vector_multi_behaviour_tests;
@@ -2013,6 +2021,8 @@ mod version_preview_tests;
 mod version_tests;
 #[cfg(test)]
 mod view_behaviour_tests;
+#[cfg(test)]
+mod vue_codegen_tests;
 #[cfg(test)]
 mod widget_input_tests;
 #[cfg(test)]

@@ -137,6 +137,8 @@ impl eframe::App for App {
     }
 }
 
+/// Start the desktop editor with native services, confined file watching and the optional
+/// control channel; all document refreshes continue through the engine command interface.
 fn main() -> eframe::Result {
     // Windows: the update helper is a copy of this program started with `--finish-update`.
     #[cfg(windows)]
