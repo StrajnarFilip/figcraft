@@ -167,7 +167,10 @@ pub(super) fn input(app: &mut FigApp, ui: &mut Ui, resp: &egui::Response) -> boo
     // a dropped document opens as a file of its own, as on the home screen. Dev Mode imports
     // nothing into the design, and says so once for the whole drop.
     import_dropped(app, &ctx, hover_pos);
-    let Some(pos) = hover_pos.filter(|p| app.canvas.rect.contains(*p)) else {
+    // A drag the canvas started goes on over the panels and past the canvas's edge, where the
+    // view pans after it (#2023): only a pointer that isn't dragging leaves the canvas.
+    let held = app.canvas.dragging && ctx.input(|i| i.pointer.primary_down());
+    let Some(pos) = hover_pos.filter(|p| held || app.canvas.rect.contains(*p)) else {
         // A drag released off the canvas, or off the window, ends where the pointer was last seen.
         if app.canvas.dragging && !ctx.input(|i| i.pointer.primary_down()) {
             app.canvas.dragging = false;
@@ -305,11 +308,13 @@ pub(super) fn input(app: &mut FigApp, ui: &mut Ui, resp: &egui::Response) -> boo
                 m.surrender_focus(f);
             }
         });
+        app.canvas.drag_from = Some(press_pos.unwrap_or(pos));
         Some(PointerKind::Down)
     } else if app.canvas.dragging && primary_released {
         app.canvas.dragging = false;
         Some(PointerKind::Up)
     } else if app.canvas.dragging && primary_down {
+        autopan(app, &ctx, pos);
         Some(PointerKind::Move)
     } else if resp.hovered() {
         app.canvas.hovering = true;
@@ -344,6 +349,25 @@ pub(super) fn input(app: &mut FigApp, ui: &mut Ui, resp: &egui::Response) -> boo
         }
     }
     true
+}
+
+/// How far a drag must move from its press before it pans the view at the canvas's edge
+/// (points): a press near the edge alone never pans.
+const AUTOPAN_AFTER: f32 = 6.0;
+
+/// A drag held near or past the canvas's edge at `pos` pans the view towards it (#2023), so a
+/// layer moved, a box drawn or a selection dragged there can go on beyond what shows; the tools'
+/// next move, at the same screen point, then lands further along the page. Not with the Hand
+/// tool, whose drag pans the view itself.
+fn autopan(app: &mut FigApp, ctx: &egui::Context, pos: Pos2) {
+    if app.session.tool.tool == figcraft_engine::ToolId::Hand || app.canvas.drag_from.is_none_or(|from| from.distance(pos) < AUTOPAN_AFTER) {
+        return;
+    }
+    let dt = ctx.input(|i| i.stable_dt).clamp(0.0, 0.1);
+    if super::autopan::pan_view(app, super::autopan::edge_pan(app.canvas.rect, pos, dt)) {
+        // The pointer may rest there: the frames go on while the view moves.
+        ctx.request_repaint();
+    }
 }
 
 /// Pointer event `kind` at screen point `pos`, to the tools.

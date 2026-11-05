@@ -14,6 +14,7 @@ use crate::i18n::{tr, trf, trn};
 use crate::render_worker::{Done, Job, Worker};
 use crate::theme::{COMPONENT, Tokens, doc_c32, regular, semibold};
 
+mod autopan;
 mod builder;
 mod input;
 mod outline;
@@ -67,6 +68,9 @@ pub struct CanvasState {
     pub preview_latency_ms: Option<f64>,
     pub refine_latency_ms: Option<f64>,
     dragging: bool,
+    /// Where the drag in progress was pressed (screen): it pans the view at the canvas's edge
+    /// once it has moved from there.
+    drag_from: Option<Pos2>,
     space_pan: bool,
     middle_pan: Option<(Pos2, f64, f64)>,
     /// The zoom tool (Z held): zooming out (Alt) or in, and where its drag started.
@@ -104,6 +108,7 @@ impl Default for CanvasState {
             preview_latency_ms: None,
             refine_latency_ms: None,
             dragging: false,
+            drag_from: None,
             space_pan: false,
             middle_pan: None,
             cursor: None,
