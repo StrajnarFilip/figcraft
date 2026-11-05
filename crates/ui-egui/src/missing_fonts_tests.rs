@@ -26,6 +26,7 @@ fn listed(u: &Ui) -> Value {
     u.app.inspect()["missingFonts"].clone()
 }
 
+/// A user's open lists the file's missing families (with no stand-in for a made-up one) in the window; a programmatic open never shows it.
 #[test]
 fn opening_a_file_lists_its_missing_fonts_and_not_the_installed_ones() {
     if !fonts_indexed() {
@@ -46,7 +47,10 @@ fn opening_a_file_lists_its_missing_fonts_and_not_the_installed_ones() {
     u.app.run_user("file.open", json!({"path": path}));
     std::fs::remove_file(&path).unwrap();
     u.frame(vec![]);
-    assert_eq!(listed(&u), json!({"families": [{"family": "FigCraft Missing UI", "layers": 2, "source": null}], "indexing": false, "consent": null}));
+    assert_eq!(
+        listed(&u),
+        json!({"families": [{"family": "FigCraft Missing UI", "layers": 2, "source": null, "standIn": null}], "indexing": false, "consent": null})
+    );
     u.frame(vec![]);
     let shown = u.frame_output(vec![]).shapes;
     assert!(crate::import_report_tests::shown_texts(shown).iter().any(|t| t == "2 text layers"));
@@ -112,6 +116,7 @@ fn text_menu_shows_the_window_for_the_file_in_front_even_with_nothing_missing() 
     assert_eq!(listed(&u), Value::Null, "Escape closes it");
 }
 
+/// Asked for while the installed fonts are still being indexed, the window lists the missing ones once they are.
 #[test]
 fn asked_for_before_the_fonts_are_indexed_it_lists_them_once_they_are() {
     assert!(fonts_indexed());
@@ -125,7 +130,7 @@ fn asked_for_before_the_fonts_are_indexed_it_lists_them_once_they_are() {
     u.frame(vec![]);
     assert_eq!(
         listed(&u),
-        json!({"families": [{"family": "FigCraft Missing Indexing", "layers": 2, "source": null}], "indexing": false, "consent": null})
+        json!({"families": [{"family": "FigCraft Missing Indexing", "layers": 2, "source": null, "standIn": null}], "indexing": false, "consent": null})
     );
 }
 

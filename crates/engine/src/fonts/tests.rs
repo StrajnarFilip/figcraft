@@ -138,6 +138,25 @@ fn branching_alias_chains_are_walked_once_per_variable() {
     assert_eq!(string_values(&doc.variables, &ids[0]), vec!["FigCraft Missing H", "FigCraft Missing H"]);
 }
 
+/// A missing well-known family is still listed (installing it is still the fix), with the close
+/// stand-in its text draws in meanwhile (#1237); other missing families have none.
+#[test]
+fn a_missing_well_known_family_names_its_stand_in() {
+    // As the app and the CLI see them: a Mac has SF Pro under its System Font name.
+    figcraft_text::scan_system_fonts();
+    if !figcraft_text::has_family("Inter") || figcraft_text::has_family("SF Pro") || figcraft_text::has_family("System Font") {
+        return;
+    }
+    let mut s = Session::new();
+    text(&mut s, "SF Pro");
+    text(&mut s, "FigCraft Missing D");
+    let r = s.execute("text.missingFonts", &json!({})).unwrap();
+    let rows = r["families"].as_array().unwrap();
+    let row = |family: &str| rows.iter().find(|f| f["family"] == family).unwrap_or_else(|| panic!("{family} listed: {r}"));
+    assert_eq!(row("SF Pro")["standIn"], "Inter", "{r}");
+    assert!(row("FigCraft Missing D")["standIn"].is_null(), "{r}");
+}
+
 #[test]
 fn needs_an_open_document() {
     let mut s = Session::empty();

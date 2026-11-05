@@ -279,7 +279,9 @@ Or in a project's `.mcp.json`:
   `text.setVariations {variations, replace?}` merges instead. `text.fonts {family, style?, axes: true}`
   lists a font's axes and named instances (named instances are also valid `fontStyle` values).
   `text.missingFonts` lists the families the document names that aren't installed
-  (`{families: [{family, layers, source}]}`); their text draws in a fallback font. On the desktop,
+  (`{families: [{family, layers, source, standIn}]}`); their text draws in a fallback font: for a
+  well-known UI family (SF Pro, Google Sans, Menlo, Euclid…) the close stand-in `standIn` names, at
+  the style asked for, else the generic one (`standIn: null`). On the desktop,
   `font.download {family}` installs a family whose `source` isn't null (Google Fonts, Noto) from
   the font store, in the background: pinned, checksum-verified files into the Craft apps' shared
   font folder. It works only while the user has allowed downloading fonts, which only the user can

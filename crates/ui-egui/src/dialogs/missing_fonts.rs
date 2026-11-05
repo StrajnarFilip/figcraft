@@ -32,7 +32,11 @@ impl Shown {
 
     pub fn inspect(&self) -> Value {
         json!({
-            "families": self.families.iter().map(|m| json!({"family": m.family, "layers": m.layers, "source": m.source})).collect::<Vec<_>>(),
+            "families": self
+                .families
+                .iter()
+                .map(|m| json!({"family": m.family, "layers": m.layers, "source": m.source, "standIn": m.stand_in}))
+                .collect::<Vec<_>>(),
             "indexing": self.indexing,
             "consent": self.consent,
         })
@@ -171,9 +175,10 @@ fn act(app: &mut FigApp, clicks: Clicks) {
     }
 }
 
-/// One missing family: its name, where the file uses it, and for a family the font store has,
-/// where it comes from and its Download button (its progress while it downloads, and why it
-/// failed). Returns whether Download was clicked.
+/// One missing family: its name, where the file uses it, the close stand-in its text draws in
+/// meanwhile (#1237), and for a family the font store has, where it comes from and its Download
+/// button (its progress while it downloads, and why it failed). Returns whether Download was
+/// clicked.
 fn row(ui: &mut egui::Ui, t: &Tokens, m: &Missing, job: Option<&Download>) -> bool {
     let mut clicked = false;
     ui.horizontal(|ui| {
@@ -194,6 +199,9 @@ fn row(ui: &mut egui::Ui, t: &Tokens, m: &Missing, job: Option<&Download>) -> bo
             ui.label(RichText::new(source).color(t.text_tertiary).font(regular(11.0)));
         });
     });
+    if let Some(stand_in) = &m.stand_in {
+        ui.label(RichText::new(trf("Drawn in {family}", &[("family", stand_in)])).color(t.text_tertiary).font(regular(11.0)));
+    }
     if let Some(Download::Failed(error)) = job {
         ui.add(egui::Label::new(RichText::new(error).color(t.danger).font(regular(11.0))).wrap());
     }

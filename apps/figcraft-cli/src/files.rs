@@ -164,6 +164,8 @@ fn page_pdf(doc: &Document, page: NodeId, print: &PrintSettings) -> CliResult<Ve
     r.map_err(|e| CliError::Failed(e.to_string()))
 }
 
+/// `figcraft-cli info`: the file's pages, frames and counts, and the fonts it uses that aren't
+/// installed with the stand-in each draws in (#1237); as JSON with `as_json`.
 pub fn info(path: &str, as_json: bool) -> CliResult<ExitCode> {
     let (doc, notes) = load_noted(path)?;
     let pages: Vec<Value> = doc
@@ -192,7 +194,7 @@ pub fn info(path: &str, as_json: bool) -> CliResult<ExitCode> {
         "variables": doc.variables.variables.len(),
         "images": doc.images.len(),
         "notes": notes,
-        "missingFonts": missing.iter().map(|m| json!({"family": m.family, "layers": m.layers})).collect::<Vec<_>>(),
+        "missingFonts": missing.iter().map(|m| json!({"family": m.family, "layers": m.layers, "standIn": m.stand_in})).collect::<Vec<_>>(),
     });
     if as_json {
         println!("{}", serde_json::to_string_pretty(&v).unwrap_or_default());
@@ -218,7 +220,11 @@ pub fn info(path: &str, as_json: bool) -> CliResult<ExitCode> {
     }
     for m in &missing {
         let layers = if m.layers == 1 { "text layer" } else { "text layers" };
-        println!("missing font \"{}\": {} {layers} (drawn in a fallback font)", m.family, m.layers);
+        match &m.stand_in {
+            // A close stand-in for a well-known family (#1237).
+            Some(stand_in) => println!("missing font \"{}\": {} {layers} (drawn in {stand_in})", m.family, m.layers),
+            None => println!("missing font \"{}\": {} {layers} (drawn in a fallback font)", m.family, m.layers),
+        }
     }
     Ok(ExitCode::SUCCESS)
 }

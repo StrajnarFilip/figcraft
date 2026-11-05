@@ -21,6 +21,9 @@ pub struct Missing {
     pub layers: usize,
     /// The font store source it can be downloaded from (`Google Fonts`, `Noto`; desktop only).
     pub source: Option<String>,
+    /// The installed family its text draws in meanwhile, when it has a close stand-in
+    /// (`figcraft_text::stand_ins`, #1237); else the generic fallback draws it.
+    pub stand_in: Option<String>,
 }
 
 /// The families `doc` names that the font database doesn't have, by name. On the desktop the
@@ -65,7 +68,7 @@ pub fn missing(doc: &Document) -> Vec<Missing> {
     }
     used.into_values()
         .filter(|(family, _)| !figcraft_text::has_family(family))
-        .map(|(family, layers)| Missing { source: source(&family), family, layers })
+        .map(|(family, layers)| Missing { source: source(&family), stand_in: figcraft_text::stand_in(&family), family, layers })
         .collect()
 }
 
@@ -172,7 +175,8 @@ fn refit_text(s: &mut Session, p: &Value) -> Result<Value> {
 }
 
 fn missing_fonts(s: &mut Session, _: &Value) -> Result<Value> {
-    let families: Vec<Value> = missing(s.doc()?).into_iter().map(|m| json!({"family": m.family, "layers": m.layers, "source": m.source})).collect();
+    let families: Vec<Value> =
+        missing(s.doc()?).into_iter().map(|m| json!({"family": m.family, "layers": m.layers, "source": m.source, "standIn": m.stand_in})).collect();
     s.request_ui("dialog.missingFonts", json!({}));
     Ok(json!({"families": families}))
 }
@@ -184,7 +188,7 @@ pub fn specs() -> Vec<CommandSpec> {
         spec!(
             "text.missingFonts",
             "Missing fonts",
-            "{}  fonts the open document names that aren't installed (text layers, styled ranges, text styles, font family variables); the app shows them → {families: [{family, layers, source (the font store source font.download gets it from, or null)}]}",
+            "{}  fonts the open document names that aren't installed (text layers, styled ranges, text styles, font family variables); the app shows them → {families: [{family, layers, source (the font store source font.download gets it from, or null), standIn (the installed family its text draws in meanwhile, or null for the generic fallback)}]}",
             false,
             missing_fonts
         ),

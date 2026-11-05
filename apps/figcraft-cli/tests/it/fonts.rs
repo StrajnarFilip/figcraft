@@ -45,6 +45,7 @@ fn headless_runs_resolve_installed_families_unless_opted_out() {
     assert_ne!(run_one("face", face, &["--no-system-fonts"], false)["family"], json!(installed), "opted out, it falls back");
 }
 
+/// `info` lists the families a file uses that aren't installed, in JSON (with `standIn`) and as text.
 #[test]
 fn info_lists_the_fonts_a_file_uses_that_are_missing() {
     let d = std::env::temp_dir().join(format!("figcraft-cli-missing-{}", std::process::id()));
@@ -60,11 +61,36 @@ fn info_lists_the_fonts_a_file_uses_that_are_missing() {
     let out = cli().arg("info").arg(&file).arg("--json").output().unwrap();
     assert!(out.status.success(), "{}", String::from_utf8_lossy(&out.stderr));
     let v: Value = serde_json::from_slice(&out.stdout).unwrap();
-    assert_eq!(v["missingFonts"], json!([{"family": "FigCraft Missing CLI", "layers": 2}]));
+    assert_eq!(v["missingFonts"], json!([{"family": "FigCraft Missing CLI", "layers": 2, "standIn": null}]));
 
     let out = cli().arg("info").arg(&file).output().unwrap();
     let shown = String::from_utf8_lossy(&out.stdout);
     assert!(shown.contains("missing font \"FigCraft Missing CLI\": 2 text layers"), "{shown}");
+}
+
+/// `info` names the close stand-in a missing well-known family draws in (#1237).
+#[test]
+fn info_names_the_stand_in_of_a_missing_well_known_family() {
+    // As the app and the CLI see them: a Mac has SF Pro under its System Font name.
+    figcraft_text::scan_system_fonts();
+    if !figcraft_text::has_family("Inter") || figcraft_text::has_family("SF Pro") {
+        return;
+    }
+    let d = std::env::temp_dir().join(format!("figcraft-cli-stand-in-{}", std::process::id()));
+    std::fs::create_dir_all(&d).unwrap();
+    let (script, file) = (d.join("make.json"), d.join("doc.figcraft"));
+    let step = json!({"command": "text.create", "params": {"text": "Hamburgefonstiv", "x": 0, "y": 0, "props": {"fontFamily": "SF Pro"}}});
+    std::fs::write(&script, json!([step]).to_string()).unwrap();
+    let cli = || Command::new(env!("CARGO_BIN_EXE_figcraft-cli"));
+    let made = cli().arg("run").arg(&script).arg("--out").arg(&file).output().unwrap();
+    assert!(made.status.success(), "{}", String::from_utf8_lossy(&made.stderr));
+    let out = cli().arg("info").arg(&file).arg("--json").output().unwrap();
+    let v: Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(v["missingFonts"], json!([{"family": "SF Pro", "layers": 1, "standIn": "Inter"}]));
+    let out = cli().arg("info").arg(&file).output().unwrap();
+    let shown = String::from_utf8_lossy(&out.stdout);
+    assert!(shown.contains("missing font \"SF Pro\": 1 text layer (drawn in Inter)"), "{shown}");
+    let _ = std::fs::remove_dir_all(&d);
 }
 
 /// A synthetic `.sketch` file: one page with one Helvetica text.

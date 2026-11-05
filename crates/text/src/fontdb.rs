@@ -987,6 +987,31 @@ impl FontDb {
         self.best(family, style)
     }
 
+    /// [`find`](Self::find), else the face nearest `style` of the first of `family`'s
+    /// [`stand_ins`] this database has (#1237): text in a well-known family that isn't installed
+    /// (SF Pro on Windows, Menlo on Linux) keeps a close design and its weight.
+    pub fn find_or_stand_in(&mut self, family: &str, style: &str) -> Option<Arc<Face>> {
+        if let Some(face) = self.find(family, style) {
+            return Some(face);
+        }
+        stand_ins(family).iter().find_map(|s| self.find(s, style))
+    }
+
+    /// The first of `family`'s [`stand_ins`] this database has, as it spells it, while `family`
+    /// itself isn't there ([`has_family`](Self::has_family)).
+    pub fn stand_in(&self, family: &str) -> Option<String> {
+        if self.has_family(family) {
+            return None;
+        }
+        let found = stand_ins(family).iter().find(|s| self.has_family(s))?;
+        Some(self.display_name(&self.key(found)).unwrap_or_else(|| (*found).to_string()))
+    }
+
+    /// The display spelling of family `key` (lower case), loaded or indexed.
+    fn display_name(&self, key: &str) -> Option<String> {
+        self.families.get(key).map(|(name, _)| name.clone()).or_else(|| self.pending.get(key).map(|(name, _)| name.clone()))
+    }
+
     /// [`find`](Self::find), but a system family not loaded yet reads only its face nearest
     /// `style`: a fallback for missing characters needs one face, not every file of a CJK family
     /// (10–20 MB each). The family's other faces load when it is used by name.
@@ -1473,6 +1498,36 @@ pub fn apple_alias(key: &str) -> Option<&'static str> {
     })
 }
 
+/// Monospaced families of a similar design, most alike first: Apple's, Microsoft's, then those
+/// Linux systems and the craft-fonts build input carry.
+const MONO_STAND_INS: &[&str] =
+    &["SF Mono", "Menlo", "Cascadia Mono", "Consolas", "DejaVu Sans Mono", "Liberation Mono", "Noto Sans Mono", "Source Code Pro"];
+
+/// Close stand-ins for well-known UI families that are often not installed (#1237), most alike
+/// first: a layer set in one of them draws in the first stand-in this machine has, in the style
+/// asked for, rather than in the generic fallback's regular face. Empty for other families.
+/// Apple's system font names reach its installed copy first ([`apple_alias`]); these are for
+/// machines without it.
+pub fn stand_ins(family: &str) -> &'static [&'static str] {
+    let key = family.trim().to_lowercase();
+    match key.trim_start_matches('.') {
+        "sf pro" | "sf pro text" | "sf pro display" | "sf pro rounded" | "sf ui text" | "sf ui display" | "sf ns" | "sf ns text"
+        | "sf ns display" | "san francisco" | "system font" | "system-ui" | "-apple-system" | "blinkmacsystemfont" | "applesystemuifont"
+        | "sf compact" | "sf compact text" | "sf compact display" | "sf compact rounded" => &["Inter", "Pretendard"],
+        "google sans" | "google sans text" | "google sans display" | "google sans flex" | "product sans" => &["Roboto", "Inter"],
+        "menlo" | "sf mono" | "monaco" | "consolas" | "cascadia mono" | "cascadia code" => MONO_STAND_INS,
+        "euclid" | "euclid circular a" | "euclid circular b" | "euclid square" | "euclid flex" => &["DM Sans", "Inter"],
+        _ => &[],
+    }
+}
+
+/// The family text in `family` draws in while `family` isn't installed: its first
+/// [`stand_ins`] the global db has, as the db spells it. `None` when `family` is installed or has
+/// no stand-in here.
+pub fn stand_in(family: &str) -> Option<String> {
+    db().read().unwrap_or_else(std::sync::PoisonError::into_inner).stand_in(family)
+}
+
 /// Convenience: find a face with the global db.
 /// The family and style of the installed face whose PostScript name is `ps`.
 pub fn postscript_face(ps: &str) -> Option<(String, String)> {
@@ -1655,3 +1710,7 @@ mod names_tests;
 #[cfg(test)]
 #[path = "fontdb_fallback_tests.rs"]
 mod fallback_tests;
+
+#[cfg(test)]
+#[path = "fontdb_stand_in_tests.rs"]
+mod stand_in_tests;
