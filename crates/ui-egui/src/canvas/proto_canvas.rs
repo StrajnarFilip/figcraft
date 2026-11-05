@@ -1,6 +1,7 @@
 //! Prototype connections on the canvas (Prototype tab): noodles from layers to the frames they
-//! act on, a "+" connection handle on selected layers that drags out a new Navigate interaction,
-//! and clicking a noodle to edit its interaction.
+//! act on, a "+" connection handle on selected layers that drags out a new Navigate interaction
+//! (the view pans when it is dragged to the canvas's edge), and clicking a noodle to edit its
+//! interaction.
 
 use std::sync::Arc;
 
@@ -8,6 +9,7 @@ use egui::{Color32, CornerRadius, Id, Pos2, Rect, Shape, Stroke, StrokeKind, pos
 use figcraft_doc::{Document, NodeId};
 use serde_json::{Value, json};
 
+use super::autopan::{edge_pan, pan_view};
 use crate::{FigApp, RightTab};
 
 mod overlay_ghost;
@@ -18,9 +20,23 @@ const HANDLE_R: f32 = 7.0;
 #[derive(Clone, Copy)]
 struct Drag {
     source: NodeId,
+    /// The handle the connection leaves (screen; follows the layer when the view pans).
     from: Pos2,
     pos: Pos2,
+    /// Where the press was (screen).
+    start: Pos2,
 }
+
+impl Drag {
+    /// The pointer at `pos` has moved far enough from the press for the drag to pan the view at
+    /// the canvas's edge: a handle that starts out near the edge doesn't pan on the press alone.
+    fn travelled(&self, pos: Pos2) -> bool {
+        pos.distance(self.start) >= AUTOPAN_AFTER
+    }
+}
+
+/// How far a drag must travel before it pans the view (points).
+const AUTOPAN_AFTER: f32 = 6.0;
 
 /// Stable egui id for prototype connection dragging.
 fn drag_id() -> Id {
@@ -256,6 +272,15 @@ pub fn input(app: &mut FigApp, ui: &egui::Ui, resp: &egui::Response) -> bool {
         if let Some(p) = pos {
             d.pos = p;
         }
+        // Near or past the canvas's edge the view pans towards it, so a frame off screen can be
+        // reached (#2015); the connection keeps leaving its layer's handle as the view moves.
+        if down && !released && d.travelled(d.pos) {
+            let dt = ctx.input(|i| i.stable_dt).clamp(0.0, 0.1);
+            pan_view(app, edge_pan(app.canvas.rect, d.pos, dt));
+        }
+        if let Some((_, from)) = app.session.ds().ok().and_then(|ds| handles(app, &ds.doc, &[d.source]).into_iter().next()) {
+            d.from = from;
+        }
         ctx.request_repaint();
         if released || !down {
             ctx.data_mut(|m| m.remove::<Drag>(drag_id()));
@@ -283,7 +308,7 @@ pub fn input(app: &mut FigApp, ui: &egui::Ui, resp: &egui::Response) -> bool {
         return false;
     }
     if let Some((source, from)) = over_handle {
-        ctx.data_mut(|m| m.insert_temp(drag_id(), Drag { source, from, pos }));
+        ctx.data_mut(|m| m.insert_temp(drag_id(), Drag { source, from, pos, start: pos }));
         return true;
     }
     let hit = noodles(app, &ctx, &doc, page)
@@ -323,6 +348,56 @@ mod tests {
         u.button(at, true);
         assert!(u.app.ui.pages_focus.is_none());
         u.button(at, false);
+    }
+
+    /// A connection dragged to the canvas's edge pans the view until a frame off screen comes
+    /// under the pointer, and dropping it there connects to that frame (#2015).
+    #[test]
+    fn a_connection_dragged_to_the_edge_reaches_a_frame_off_screen() {
+        let mut s = figcraft_engine::Session::new();
+        let a = crate::present_tests::id(&s.execute("frame.create", &json!({"x": 0, "y": 0, "width": 200, "height": 150})).unwrap());
+        let b = crate::present_tests::id(&s.execute("frame.create", &json!({"x": 1600, "y": 0, "width": 200, "height": 150})).unwrap());
+        s.execute("select.set", &json!({"ids": [a]})).unwrap();
+        let mut u = crate::present_tests::Ui::new(s);
+        u.app.ui.right_tab = RightTab::Prototype;
+        if let Ok(ds) = u.app.session.ds_mut() {
+            (ds.view.zoom, ds.view.cx, ds.view.cy) = (1.0, 100.0, 75.0);
+        }
+        u.frames(2, Vec::new);
+        let canvas = u.app.canvas.rect;
+        let doc = u.app.session.doc().unwrap().clone();
+        let page = u.app.session.ds().unwrap().page;
+        assert!(screen_rect(&u.app, &doc, b).unwrap().min.x > canvas.max.x, "B starts off screen");
+        let (_, at) = *handles(&u.app, &doc, &[a]).first().unwrap();
+        let cx = u.app.session.ds().unwrap().view.cx;
+        u.button(at, true);
+        let edge = pos2(canvas.max.x - 4.0, at.y);
+        let mut reached = false;
+        for _ in 0..600 {
+            u.frame(vec![egui::Event::PointerMoved(edge)]);
+            if frame_at(&u.app, &doc, page, edge) == Some(b) {
+                reached = true;
+                break;
+            }
+        }
+        assert!(reached, "the view panned until B came under the pointer");
+        assert!(u.app.session.ds().unwrap().view.cx > cx + 1000.0);
+        // The connection still leaves A's handle, wherever A is now.
+        let dragged: Drag = u.ctx.data(|d| d.get_temp(drag_id())).unwrap();
+        let (_, handle) = *handles(&u.app, &doc, &[a]).first().unwrap();
+        assert!(dragged.from.distance(handle) < 30.0, "{:?} {:?}", dragged.from, handle);
+        u.button(edge, false);
+        let it = &u.app.session.doc().unwrap().node(a).unwrap().interactions;
+        assert_eq!(it.len(), 1);
+        assert_eq!(figcraft_doc::proto::walk(&it[0].actions).find_map(|x| x.dest()), Some(b));
+    }
+
+    /// A press on a handle near the edge doesn't pan until the drag has moved.
+    #[test]
+    fn a_press_alone_never_pans() {
+        let d = Drag { source: NodeId(1), from: pos2(10.0, 10.0), pos: pos2(10.0, 10.0), start: pos2(10.0, 10.0) };
+        assert!(!d.travelled(pos2(12.0, 11.0)));
+        assert!(d.travelled(pos2(10.0 + AUTOPAN_AFTER, 10.0)));
     }
 
     #[test]
