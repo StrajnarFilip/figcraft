@@ -7,6 +7,10 @@
 //! the transform box around several points (in one layer or several) in [`transform`], point snapping in `point_snap.rs` and
 //! hovering, hatching and selecting filled regions in [`regions`].
 
+pub mod clipboard;
+#[cfg(test)]
+#[path = "vectoredit/clipboard_tests.rs"]
+mod clipboard_tests;
 pub mod ops;
 pub(crate) mod point_snap;
 mod pointer;
@@ -349,11 +353,16 @@ pub fn ensure_vector(doc: &mut Document, id: NodeId) -> Result<()> {
 
 /// Make the node's box wrap its network again (moving the node so nothing shifts on screen).
 pub fn refit(doc: &mut Document, id: NodeId) -> Result<()> {
-    let n = doc.get_mut(id)?;
-    let NodeKind::Vector { network } = &mut n.kind else { return Ok(()) };
-    let Some(b) = network.bounds() else { return Ok(()) };
+    refit_node(doc.get_mut(id)?);
+    Ok(())
+}
+
+/// [`refit`] on a node held outside a document (a copy on its way to the clipboard).
+pub(crate) fn refit_node(n: &mut figcraft_doc::Node) {
+    let NodeKind::Vector { network } = &mut n.kind else { return };
+    let Some(b) = network.bounds() else { return };
     if !(b.x0.is_finite() && b.y0.is_finite() && b.width().is_finite() && b.height().is_finite()) {
-        return Ok(());
+        return;
     }
     if b.x0.abs() > 1e-9 || b.y0.abs() > 1e-9 {
         network.translate(-b.x0, -b.y0);
@@ -361,7 +370,6 @@ pub fn refit(doc: &mut Document, id: NodeId) -> Result<()> {
     }
     n.width = b.width();
     n.height = b.height();
-    Ok(())
 }
 
 /// The network of vector `id`.

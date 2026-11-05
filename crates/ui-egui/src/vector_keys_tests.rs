@@ -49,6 +49,24 @@ fn a_cut_command_in_edit_mode_takes_the_selected_points_not_the_layer() {
     assert_eq!(net(&u, path).vertices.len(), 2, "it takes the selected point");
 }
 
+/// Ctrl+X on a selected segment cuts it to the clipboard (#1875) instead of only deleting it.
+#[test]
+fn ctrl_x_on_a_segment_cuts_it_to_the_clipboard() {
+    let mut u = Ui::new(Session::new());
+    let path = abc(&mut u);
+    u.app.session.execute("vector.edit.select", &json!({"segments": [0]})).unwrap();
+    u.frame_with(vec![Event::Cut], Modifiers::COMMAND);
+    let n = net(&u, path);
+    // As Delete leaves it: the edge A-B is gone, and A with it (no segment holds it any more).
+    assert_eq!((n.vertices.len(), n.segments.len()), (2, 1), "only B-C is left: {n:?}");
+    let copied = &u.app.session.clipboard.nodes;
+    assert_eq!(copied.len(), 1, "the edge is on the clipboard");
+    match &copied[0].1[0].kind {
+        figcraft_doc::NodeKind::Vector { network } => assert_eq!(network.segments.len(), 1),
+        k => panic!("a vector: {k:?}"),
+    }
+}
+
 #[test]
 fn a_cut_command_in_edit_mode_with_nothing_selected_keeps_the_layer() {
     let mut u = Ui::new(Session::new());

@@ -167,18 +167,34 @@ fn layers_missing_images(doc: &figcraft_doc::Document, ids: &[NodeId]) -> Vec<St
     names
 }
 
+/// `edit.copy`: the selected layers; in vector edit mode with points selected, the selected
+/// paths as layers of their own (#1875).
 pub(super) fn copy(s: &mut Session, p: &Value) -> Result<Value> {
+    if let Some(r) = crate::vectoredit::clipboard::copy_in_edit_mode(s, false) {
+        return r;
+    }
     let ids = req_targets("edit.copy", s, p)?;
     copy_to_clipboard(s, "edit.copy", &ids)?;
     Ok(json!({"copied": s.clipboard.nodes.len()}))
 }
 
+/// `edit.cut`: copy, then delete; in vector edit mode with points selected, the selected paths
+/// (#1875).
 pub(super) fn cut(s: &mut Session, p: &Value) -> Result<Value> {
+    if let Some(r) = crate::vectoredit::clipboard::copy_in_edit_mode(s, true) {
+        return r;
+    }
     let ids = req_targets("edit.cut", s, p)?;
     copy_to_clipboard(s, "edit.cut", &ids)?;
     let doc = s.doc()?;
     let layers: Vec<NodeId> = ids.into_iter().filter(|i| !doc.node(*i).is_some_and(Node::is_page)).collect();
     delete(s, &json!({"ids": layers}))
+}
+
+/// Copied bounds `b` show in view `vr`: they overlap it, edges included, so a horizontal or
+/// vertical line (no area) in view pastes in place too (#1875).
+fn in_view(vr: figcraft_geom::Rect, b: figcraft_geom::Rect) -> bool {
+    b.x0 <= vr.x1 && b.x1 >= vr.x0 && b.y0 <= vr.y1 && b.y1 >= vr.y0
 }
 
 /// Paste the clipboard under `parent` with the copied top-left moved to `at` (page coords).
@@ -237,7 +253,12 @@ pub fn paste_into(s: &mut Session, parent: NodeId, at: Option<(f64, f64)>) -> Re
     Ok(out)
 }
 
+/// `edit.paste`: the copied layers into the selected frame or the page; in vector edit mode the
+/// copied paths join the edited layer (#1875).
 pub(super) fn paste(s: &mut Session, p: &Value) -> Result<Value> {
+    if let Some(r) = crate::vectoredit::clipboard::paste_in_edit_mode(s) {
+        return r;
+    }
     let page = s.page()?;
     // Figma pastes into the selected frame (if one is selected), at the same position when it fits,
     // else in the frame's centre; otherwise in place on the page (or the viewport centre).
@@ -272,7 +293,7 @@ pub(super) fn paste(s: &mut Session, p: &Value) -> Result<Value> {
                     let v = &s.ds()?.view;
                     let (ox, oy) = v.origin();
                     let vr = figcraft_geom::Rect::new(ox, oy, ox + v.vw / v.zoom.max(1e-9), oy + v.vh / v.zoom.max(1e-9));
-                    if vr.intersect(b).is_zero_area() { Some((v.cx - b.width() / 2.0, v.cy - b.height() / 2.0)) } else { None }
+                    if in_view(vr, b) { None } else { Some((v.cx - b.width() / 2.0, v.cy - b.height() / 2.0)) }
                 }
                 _ => None,
             }

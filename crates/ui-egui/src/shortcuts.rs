@@ -178,7 +178,7 @@ pub(crate) fn handle_input(
                 let props = ctx.input(|i| i.modifiers.alt);
                 crate::menus::invoke(app, if props { "edit.copyProperties" } else { "edit.copy" });
             }
-            Event::Cut => cut(app),
+            Event::Cut => cut(app, ctx.input(|i| i.modifiers.command)),
             Event::Paste(text) if !paste.drop_text => crate::menus::paste(app, Some(text), None),
             Event::Key { key, physical_key, pressed: true, modifiers, repeat }
                 if key_event(app, *key, *physical_key, *modifiers, *repeat, now, ctx) =>
@@ -190,14 +190,21 @@ pub(crate) fn handle_input(
     }
 }
 
-/// Cut: usually the layers. Windows sends Shift+Delete (remove the points and heal the path)
-/// as a cut command and never as a key, so in vector edit mode the selection is points: they are
-/// removed, a heal joining the path through them.
-fn cut(app: &mut FigApp) {
+/// Cut: usually the layers; in vector edit mode Cmd/Ctrl+X (`command` held) the selected paths
+/// (`edit.cut`, #1875). Windows sends Shift+Delete (remove the points and heal the path) as a
+/// cut command too and never as a key: without Cmd/Ctrl the selected points are removed, a heal
+/// joining the path through them.
+fn cut(app: &mut FigApp, command: bool) {
     let Some(ve) = app.session.ds().ok().and_then(|d| d.vector_edit.clone()) else {
         crate::menus::invoke(app, "edit.cut");
         return;
     };
+    // Cmd/Ctrl+X cuts the selected paths to the clipboard (#1875); only Shift+Delete, which
+    // arrives without Cmd/Ctrl, deletes and heals.
+    if command {
+        crate::menus::invoke(app, "edit.cut");
+        return;
+    }
     if ve.parts().iter().any(|p| !p.vertices.is_empty()) {
         app.run("vector.deleteHeal", json!({}));
     } else if ve.parts().iter().any(|p| !p.segments.is_empty()) {
