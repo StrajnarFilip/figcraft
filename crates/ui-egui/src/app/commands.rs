@@ -142,6 +142,18 @@ impl FigApp {
                 "panel.designPrototype" => {
                     self.ui.right_tab = if self.ui.right_tab == RightTab::Prototype { RightTab::Design } else { RightTab::Prototype };
                 }
+                // The Annotation tool (Shift+T, #1840): in Dev Mode, a new annotation on the layer
+                // it names, or it waits for a click on one.
+                "dev.annotate" => {
+                    self.ui.right_tab = RightTab::Inspect;
+                    match r.data.get("id").and_then(figcraft_engine::params::id_of) {
+                        Some(id) => {
+                            self.ui.dev.annotating = None;
+                            self.ui.dev.annotate_focus = Some(id);
+                        }
+                        None => self.ui.dev.annotating = Some(self.session.selection()),
+                    }
+                }
                 "panel.devMode" => {
                     self.ui.right_tab = if self.ui.right_tab == RightTab::Inspect { RightTab::Design } else { RightTab::Inspect };
                 }

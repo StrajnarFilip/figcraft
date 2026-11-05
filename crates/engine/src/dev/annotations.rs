@@ -242,8 +242,37 @@ fn existing(cmd: &str, s: &crate::Session, id: NodeId, p: &Value) -> crate::Resu
     Ok(index)
 }
 
+/// `annotation.tool`: Dev Mode's Annotation tool (Shift+T, #1840). The layer named by `id`, or
+/// the one selected, is selected and the app opens a new annotation on it; with no layer (or
+/// several selected) the app waits for a click on one. Returns the layer, or null.
+fn annotation_tool(s: &mut crate::Session, p: &Value) -> crate::Result<Value> {
+    let cmd = "annotation.tool";
+    let doc = s.doc()?;
+    let layer_ok = |i: &NodeId| doc.node(*i).is_some_and(|n| !n.is_page());
+    let target = match id(p, "id") {
+        Some(i) if layer_ok(&i) => Some(i),
+        Some(i) => return Err(bad(cmd, format!("{i} is not a layer"))),
+        None => match s.selection().as_slice() {
+            [one] if layer_ok(one) => Some(*one),
+            _ => None,
+        },
+    };
+    if let Some(t) = target {
+        s.set_selection(vec![t]);
+    }
+    s.request_ui("dev.annotate", json!({"id": target}));
+    Ok(json!({"id": target}))
+}
+
 pub fn specs() -> Vec<CommandSpec> {
     vec![
+        spec!(
+            "annotation.tool",
+            "Annotation tool",
+            "{id? (the layer to annotate; default the selected one)}  Dev Mode's Annotation tool: the app opens a new annotation on the layer, or with none waits for a click on one → {id (the layer, or null)}",
+            false,
+            annotation_tool
+        ),
         spec!(
             "annotation.add",
             "Add annotation",

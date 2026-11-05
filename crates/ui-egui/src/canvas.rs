@@ -288,6 +288,7 @@ pub fn show(app: &mut FigApp, ui: &mut Ui, worker: &mut Worker) {
         painter.image(tex.id(), image_rect, Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0)), Color32::WHITE);
     }
     crate::dev_mode::refresh_measurements(app);
+    crate::dev_mode::annotation_tool(app, &ctx);
     app.session.tool.labels = overlays(app, &painter, &t);
     crate::frame_labels::rename_field(app, ui);
     // The zoom tool's area.
@@ -321,7 +322,9 @@ pub fn show(app: &mut FigApp, ui: &mut Ui, worker: &mut Worker) {
     app.canvas.cursor = None;
     if let (true, Some(at)) = (own_cursor && resp.hovered(), ctx.input(|i| i.pointer.hover_pos())) {
         let panning = app.canvas.space_pan || app.canvas.middle_pan.is_some();
-        let shown = crate::cursors::on_canvas(panning, ctx.input(|i| i.pointer.any_down()), app.canvas.zoom_tool, app.session.tool.overlay.cursor);
+        // The Annotation tool waiting for a layer shows a crosshair (#1840).
+        let tool_cursor = if app.ui.dev.annotating.is_some() { figcraft_engine::tools::Cursor::Crosshair } else { app.session.tool.overlay.cursor };
+        let shown = crate::cursors::on_canvas(panning, ctx.input(|i| i.pointer.any_down()), app.canvas.zoom_tool, tool_cursor);
         shown.show(&ctx, at);
         app.canvas.cursor = Some(shown);
     }

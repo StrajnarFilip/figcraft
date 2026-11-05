@@ -193,6 +193,9 @@ pub static KEYS: &[Binding] = &[
     k(Tools, "tool.text", &["T"]),
     k(Tools, "tool.comment", &["C"]),
     k(Tools, "tool.shapeBuilder", &["Shift+M"]),
+    // Dev Mode's Annotation tool (Accessibility at Figma: "Press Shift T to activate the
+    // Annotation tool"); from the design it enters Dev Mode (#1840).
+    k(Tools, "annotation.tool", &["Shift+T"]).label("Annotation tool (Dev Mode)"),
     // Board tools (on boards only), on keys nothing else uses.
     k(Tools, "tool.sticky", &["Q"]),
     k(Tools, "tool.shape", &["B"]),

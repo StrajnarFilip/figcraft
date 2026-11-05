@@ -107,6 +107,11 @@ pub struct DevUi {
     focus_key: Option<(u64, u64)>,
     code: Option<((u64, u64, NodeId, CodeLang), String)>,
     playground: Playground,
+    /// The Annotation tool (Shift+T, #1840) waits for a click on a layer; the selection when it
+    /// started (a click picks another).
+    pub annotating: Option<Vec<NodeId>>,
+    /// The layer whose new annotation takes the keyboard when the Inspect tab next draws it.
+    pub annotate_focus: Option<NodeId>,
 }
 
 /// The component playground of the Inspect tab: the layer it is for, the property values tried
@@ -132,6 +137,25 @@ fn active(app: &FigApp) -> bool {
 }
 
 // ------------------------------------------------------------------ canvas
+
+/// The Annotation tool (#1840), each frame: while it waits (the canvas shows a crosshair), a
+/// click that selects one layer opens a new annotation on it; Escape or leaving Dev Mode puts it
+/// away.
+pub fn annotation_tool(app: &mut FigApp, ctx: &egui::Context) {
+    let Some(from) = app.ui.dev.annotating.clone() else { return };
+    if !active(app) || ctx.input(|i| i.key_pressed(egui::Key::Escape)) {
+        app.ui.dev.annotating = None;
+        return;
+    }
+    let sel = app.session.selection();
+    if let [one] = sel.as_slice()
+        && sel != from
+        && app.session.doc().ok().and_then(|d| d.node(*one)).is_some_and(|n| !n.is_page())
+    {
+        app.ui.dev.annotating = None;
+        app.ui.dev.annotate_focus = Some(*one);
+    }
+}
 
 /// The annotations on the current page as callouts beside their layers (Inspect tab only).
 pub fn draw(app: &mut FigApp, painter: &egui::Painter) {
@@ -617,6 +641,14 @@ pub fn annotations_section(app: &mut FigApp, ui: &mut Ui, doc: &Document, id: No
             }
         }
         ui.add_space(6.0);
+    }
+    // The Annotation tool picked this layer: its new note takes the keyboard (#1840), once the
+    // click that picked it is over (a field drops the keyboard on a click elsewhere).
+    let clicking = ui.input(|i| i.pointer.any_down() || i.pointer.any_released());
+    if app.ui.dev.annotate_focus == Some(id) && !clicking && n.annotations.len() < annotations::MAX_PER_LAYER {
+        app.ui.dev.annotate_focus = None;
+        ui.memory_mut(|m| m.request_focus(Id::unique(("annot_new", id)).with("te")));
+        ui.scroll_to_cursor(Some(egui::Align::Center));
     }
     // A new annotation starts as a note; properties are pinned to it afterwards.
     if n.annotations.len() < annotations::MAX_PER_LAYER

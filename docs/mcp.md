@@ -1777,7 +1777,9 @@ permissions: without it nothing is downloaded); `plugin.directory.publish {path 
   Dev Mode shows with their current values (and the style or variable behind them).
   `annotation.add {id?, label?, properties?}` (a note, pinned properties or both; returns `{id,
   index}`), `annotation.edit {id?, index, label?, properties?}` (`properties` replaces the list),
-  `annotation.remove {id?, index?}` (no index: all of the layer's), all undoable, and
+  `annotation.remove {id?, index?}` (no index: all of the layer's), all undoable;
+  `annotation.tool {id?}` is the app's Annotation tool (Shift+T): it selects the layer and asks the
+  app to open its new note (dropped on the control channel, like other dialogs); and
   `annotation.list {ids? | id? | page? ("all")}` → `{annotations: [{id, name, index, label,
   properties: [{property, label, value, token?, color?}]}]}` (`value` is null when the layer doesn't
   have that property). Pinnable ids: `width`, `height`, `top`, `left`, `rotation`, `opacity`,

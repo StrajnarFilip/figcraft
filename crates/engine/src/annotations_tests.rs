@@ -180,6 +180,7 @@ fn ready_for_dev_lists_frames_by_status() {
     assert_eq!(crate::devinspect::dev_items(doc, Some(DevStatus::ReadyForDev), Some(pg2)).len(), 1);
 }
 
+/// Junk parameters never panic an annotation command (the Annotation tool included).
 #[test]
 fn annotation_commands_survive_junk() {
     let junk = [
@@ -190,7 +191,15 @@ fn annotation_commands_survive_junk() {
         json!({"ids": [-1, "0:0"], "page": {"x": 1}, "status": 7}),
         json!({"index": -0.5, "label": "\u{0}\u{2028}".repeat(4000)}),
     ];
-    for cmd in ["annotation.add", "annotation.edit", "annotation.remove", "annotation.list", "inspect.readyForDev", "inspect.componentCode"] {
+    for cmd in [
+        "annotation.add",
+        "annotation.edit",
+        "annotation.remove",
+        "annotation.list",
+        "annotation.tool",
+        "inspect.readyForDev",
+        "inspect.componentCode",
+    ] {
         for j in &junk {
             let mut s = Session::new();
             let r = rect(&mut s);
@@ -201,4 +210,32 @@ fn annotation_commands_survive_junk() {
             }
         }
     }
+}
+
+/// The Annotation tool (Shift+T, #1840): with one layer selected (or named) it asks the app to
+/// open a new annotation on it; with none it asks the app to wait for a click on one. It edits
+/// nothing itself, and Dev Mode allows it.
+#[test]
+fn the_annotation_tool_starts_on_the_selected_layer_or_waits_for_one() {
+    let mut s = Session::new();
+    let r = rect(&mut s);
+    ex(&mut s, "select.set", json!({"ids": [r]}));
+    s.ui_requests.clear();
+    assert_eq!(ex(&mut s, "annotation.tool", json!({})), json!({"id": r.0}));
+    let req = s.ui_requests.iter().find(|u| u.kind == "dev.annotate").expect("asks the app");
+    assert_eq!(req.data, json!({"id": r.0}));
+    assert!(node(&s, r).annotations.is_empty(), "nothing is added until the note is typed");
+    // Nothing selected: the app waits for a click.
+    ex(&mut s, "select.set", json!({"ids": []}));
+    s.ui_requests.clear();
+    assert_eq!(ex(&mut s, "annotation.tool", json!({})), json!({"id": null}));
+    assert_eq!(s.ui_requests.iter().find(|u| u.kind == "dev.annotate").map(|u| u.data.clone()), Some(json!({"id": null})));
+    // A named layer is selected; a page isn't a layer.
+    let other = rect(&mut s);
+    ex(&mut s, "annotation.tool", json!({"id": other}));
+    assert_eq!(s.selection(), vec![other]);
+    let page = s.page().unwrap();
+    assert!(s.execute("annotation.tool", &json!({"id": page})).is_err());
+    assert!(crate::devinspect::dev_mode_allows("annotation.tool"));
+    assert!(!crate::cmd::find_command("annotation.tool").unwrap().history, "no undo step of its own");
 }
