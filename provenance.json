@@ -1,0 +1,73 @@
+{
+  "baseline_commit": "8eb0b87646c5aef712326d6c431ccde5408630de",
+  "checked_upstream_main": "0b97f3f1801a9b7b96fd7a4f3c0942a3f1a676f3",
+  "rustc": "1.99.1 (58cf8f9c3 2026-10-13)",
+  "capture": "Actual FigCraft window PNGs from its control channel, on a private Xvfb display with llvmpipe. Original synthetic documents only; no image edits. All windows 1440x900, interface scale 1.0, light theme, same optional open-source craft-fonts build input. Automatic updates were disconnected during capture.",
+  "drag_protocol": "Hold the drag at the edge until the off-screen target becomes reachable, or at most 3.5 seconds; then release. This is a goal-based capture, not a fixed-duration input benchmark.",
+  "images": [
+    {
+      "file": "figcraft-1237-before.png",
+      "sha256": "a6ce24a46328c00c4669a86ac3efceda6dbc505940be394a73d75b6a76c39be2",
+      "bytes": 104501,
+      "width": 1440,
+      "height": 900,
+      "source_commit": "8eb0b87646c5aef712326d6c431ccde5408630de"
+    },
+    {
+      "file": "figcraft-1237-after.png",
+      "sha256": "3e9689d1d0ac634dfc3183ef19335903190a0b7a2c599113a100b60ca65bc2e6",
+      "bytes": 109364,
+      "width": 1440,
+      "height": 900,
+      "source_commit": "ad92029ec40e6c1e3e081e3ab846480bcb7e83e5"
+    },
+    {
+      "file": "figcraft-1840-before.png",
+      "sha256": "4ae128c47be3b33dd3ca3395ae14b3803e5a66cbf3fababd949483d369c5761d",
+      "bytes": 86664,
+      "width": 1440,
+      "height": 900,
+      "source_commit": "8eb0b87646c5aef712326d6c431ccde5408630de"
+    },
+    {
+      "file": "figcraft-1840-after.png",
+      "sha256": "b1da304246bbc4fe0408d539c03ad8ca819233198e8cb776e44ad72d534dfcc7",
+      "bytes": 106490,
+      "width": 1440,
+      "height": 900,
+      "source_commit": "460a055d3e716e7c305825dde07f8b9ebe5aac97"
+    },
+    {
+      "file": "figcraft-2015-before.png",
+      "sha256": "99b57c722856be03ba2bacc1eb35d2cf27c5623734461c70414b0b79b58e5b28",
+      "bytes": 71514,
+      "width": 1440,
+      "height": 900,
+      "source_commit": "8eb0b87646c5aef712326d6c431ccde5408630de"
+    },
+    {
+      "file": "figcraft-2015-after.png",
+      "sha256": "e8fd38afbae21a35791d63d017f2f12741054e29d6a683b8536338f984a328d3",
+      "bytes": 90995,
+      "width": 1440,
+      "height": 900,
+      "source_commit": "77c53f447ce9c16c70c910216c4ec6a882723369"
+    },
+    {
+      "file": "figcraft-2023-before.png",
+      "sha256": "f754a84d69bcb5580a988835ce2eb60aa10b372c6210a29eaeb8d4c4b6c1ba54",
+      "bytes": 90609,
+      "width": 1440,
+      "height": 900,
+      "source_commit": "8eb0b87646c5aef712326d6c431ccde5408630de"
+    },
+    {
+      "file": "figcraft-2023-after.png",
+      "sha256": "cfa68e84976106abc1bd11af4ce54e39231c23a1644ac87bcfff2bc9bd54e291",
+      "bytes": 92252,
+      "width": 1440,
+      "height": 900,
+      "source_commit": "201d4b432e8f6b49ac246e541a3da42466249015"
+    }
+  ]
+}
