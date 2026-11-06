@@ -1,0 +1,68 @@
+{
+  "rustc": "1.99.1",
+  "results": [
+    {
+      "issue_tag": 1237,
+      "branch": "claude/fix-1237-font-stand-ins",
+      "head": "ad92029ec40e6c1e3e081e3ab846480bcb7e83e5",
+      "ui_passed": 1016,
+      "ui_failed": 0,
+      "ui_ignored": 1,
+      "ignored_reason": "perf_tests::perf_ui_frames is a benchmark, ignored by default",
+      "native_build": "passed",
+      "strict_clippy": "passed",
+      "fmt": "passed",
+      "branch_diff_whitespace": "passed",
+      "merge_with_checked_main": "clean"
+    },
+    {
+      "issue_tag": 1840,
+      "branch": "claude/fix-1840-annotation-tool",
+      "head": "460a055d3e716e7c305825dde07f8b9ebe5aac97",
+      "ui_passed": 1019,
+      "ui_failed": 0,
+      "ui_ignored": 1,
+      "ignored_reason": "perf_tests::perf_ui_frames is a benchmark, ignored by default",
+      "native_build": "passed",
+      "strict_clippy": "passed",
+      "fmt": "passed",
+      "branch_diff_whitespace": "passed",
+      "merge_with_checked_main": "clean"
+    },
+    {
+      "issue_tag": 2023,
+      "branch": "claude/fix-2023-drag-over-panels",
+      "head": "201d4b432e8f6b49ac246e541a3da42466249015",
+      "ui_passed": 1020,
+      "ui_failed": 0,
+      "ui_ignored": 1,
+      "ignored_reason": "perf_tests::perf_ui_frames is a benchmark, ignored by default",
+      "native_build": "passed",
+      "strict_clippy": "passed",
+      "fmt": "passed",
+      "branch_diff_whitespace": "passed",
+      "merge_with_checked_main": "clean"
+    },
+    {
+      "issue_tag": 2015,
+      "branch": "claude/fix-2015-proto-drag-autopan",
+      "head": "77c53f447ce9c16c70c910216c4ec6a882723369",
+      "ui_passed": 1019,
+      "ui_failed": 0,
+      "ui_ignored": 1,
+      "ignored_reason": "perf_tests::perf_ui_frames is a benchmark, ignored by default",
+      "native_build": "passed",
+      "strict_clippy": "passed",
+      "fmt": "passed",
+      "branch_diff_whitespace": "passed",
+      "merge_with_checked_main": "clean"
+    }
+  ],
+  "additional_checks": {
+    "font_stand_in_tests": "4 passed",
+    "font_engine_missing_family_test": "1 passed",
+    "annotation_engine_tests": "12 passed",
+    "vector_clipboard_review_regression": "failed: image payload missing from copied region"
+  },
+  "limits": "Full repository cargo xtask ci, wasm, release builds and cross-platform checks were not run. All four native UI suites passed, with only the benchmark ignored."
+}

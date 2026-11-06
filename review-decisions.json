@@ -1,0 +1,146 @@
+[
+  {
+    "repo": "figcraft",
+    "branch": "claude/fix-1237-font-stand-ins",
+    "decision": "shortlist",
+    "reason": "Installed stand-ins and diagnostics; native capture and focused regression checks. Custom substitute overrides from the issue prototype are outside this branch."
+  },
+  {
+    "repo": "figcraft",
+    "branch": "claude/fix-1840-annotation-tool",
+    "decision": "shortlist",
+    "reason": "Narrow shortcut/tool implementation with engine and UI tests."
+  },
+  {
+    "repo": "figcraft",
+    "branch": "claude/fix-1875-vector-clipboard",
+    "decision": "reject-quality",
+    "reason": "Confirmed regression: copying a closed vector region with an image fill retains the image reference but does not copy image bytes. Added review regression fails."
+  },
+  {
+    "repo": "figcraft",
+    "branch": "claude/fix-2002-variables-multiselect",
+    "decision": "overlap",
+    "reason": "Open PR #2025 already implements the same selection workflow; this branch is also local-only and has a docs conflict."
+  },
+  {
+    "repo": "figcraft",
+    "branch": "claude/fix-2015-proto-drag-autopan",
+    "decision": "shortlist-separate-scope",
+    "reason": "Useful, bounded authoring-drag improvement with end-to-end UI tests. Issue #2015 describes clicking links, so the proposed PR must explicitly keep click navigation open and describe authoring drags."
+  },
+  {
+    "repo": "figcraft",
+    "branch": "claude/fix-2023-drag-over-panels",
+    "decision": "shortlist",
+    "reason": "Directly addresses drag continuity and edge panning, with undo and stationary-press tests. Alignment is outside scope."
+  },
+  {
+    "repo": "figcraft",
+    "branch": "codex/vector-drawable-integration",
+    "decision": "needs-refresh",
+    "reason": "Reintroduces the already merged base export feature and conflicts across 28 paths. Extract only the remaining validation/precision/name fixes into a new narrow patch."
+  },
+  {
+    "repo": "figcraft",
+    "branch": "codex/vector-drawable-writer",
+    "decision": "needs-refresh",
+    "reason": "Shares the writer commit with integration; re-adds existing crate files and conflicts across 11 paths. Do not submit this branch as-is."
+  },
+  {
+    "repo": "wordcraft",
+    "branch": "fix/3573-nav-pane-delete-heading",
+    "decision": "needs-refresh",
+    "reason": "Strong functional candidate with meaningful deletion, tracking, formatting and UI tests; conflicts in ROADMAP.md and docs/ui-parity.md. Refresh and revalidate on current main before calling it ready."
+  },
+  {
+    "repo": "wordcraft",
+    "branch": "fix/3695-confine-control-channel",
+    "decision": "overlap",
+    "reason": "Open PR #5140 adds the same confinement controls as part of CLI/control options. Prefer reviewing that PR and identifying any real gaps instead of a second competing implementation."
+  },
+  {
+    "repo": "wordcraft",
+    "branch": "fix/4870-greeting-local-time",
+    "decision": "overlap",
+    "reason": "Open PR #4933 fixes the same local-hour greeting; this branch also conflicts in backstage.rs."
+  },
+  {
+    "repo": "wordcraft",
+    "branch": "fix/4911-page-number-start-zero",
+    "decision": "overlap",
+    "reason": "Open PR #4927 fixes the same behavior from another fork."
+  },
+  {
+    "repo": "wordcraft",
+    "branch": "fix/5361-continue-numbering",
+    "decision": "overlap",
+    "reason": "Open PR #5245 covers continuation across unnumbered paragraphs and a broader numbering workflow."
+  },
+  {
+    "repo": "wordcraft",
+    "branch": "fix/5393-embedded-object-warning",
+    "decision": "needs-refresh",
+    "reason": "Useful CLI/API warning alternative, not embedded-document rendering. A ROADMAP.md conflict remains. Refresh and revalidate; do not claim this fixes all of #5393 or warns through every GUI export path."
+  },
+  {
+    "repo": "wordcraft",
+    "branch": "fix/5740-save-prefs-on-change",
+    "decision": "reject-quality",
+    "reason": "PrefsSaver treats a failed write as the new saved bytes and will not retry until another preference change; transient failures can leave the promised early persistence absent. PR #5766 independently addresses the reported spelling-setting synchronization. Needs recovery coverage and narrower claims."
+  },
+  {
+    "repo": "pdfcraft",
+    "branch": "fix/paragraph-drag-5212",
+    "decision": "overlap",
+    "reason": "Open PR #5450 already implements pixel-based paragraph drag previews. This branch also has code and attribution conflicts."
+  },
+  {
+    "repo": "photocraft",
+    "branch": "codex/warn-8839-color-lookup-export",
+    "decision": "needs-refresh",
+    "reason": "Potentially useful warning-only mitigation, with existing IO tests and captures, but conflicts in attribution, contributors and parity/gaps docs after substantial upstream changes. Refresh and revalidate; native Photoshop encoding remains unsolved."
+  },
+  {
+    "repo": "figcraft",
+    "branch": "claude/lan-share-read-only",
+    "decision": "unfinished",
+    "reason": "Uncommitted work; no unique committed changes yet."
+  },
+  {
+    "repo": "pdfcraft",
+    "branch": "feat/slovenian-translations",
+    "decision": "unfinished",
+    "reason": "Uncommitted translation and progress changes; no unique committed changes yet."
+  },
+  {
+    "repo": "figcraft",
+    "branch": "claude/medium-issues",
+    "decision": "covered",
+    "reason": "Already split into merged PRs #1480, #1481 and #1482."
+  },
+  {
+    "repo": "figcraft",
+    "branch": "codex/vector-drawable-review",
+    "decision": "covered",
+    "reason": "Already merged through #840."
+  },
+  {
+    "repo": "wordcraft",
+    "branch": "pr-assets/4848-corporate-author",
+    "decision": "evidence-only",
+    "reason": "Screenshots for existing PR #4898; no new source PR needed."
+  },
+  {
+    "repo": "wordcraft",
+    "branch": "pr-assets/4850-narrow-window",
+    "decision": "evidence-only",
+    "reason": "Screenshots for existing PR #4897; no new source PR needed."
+  },
+  {
+    "repo": "wordcraft",
+    "branch": "pr-assets/4857-table-row-properties",
+    "decision": "evidence-only",
+    "reason": "Screenshots for existing PR #4896; no new source PR needed."
+  }
+]
